@@ -2,6 +2,7 @@
 A Metropolis-Hastings MCMC sampler accelerated via diffusion models. Please cite https://arxiv.org/abs/2309.01454 if you use this code in your research.
 
 Optimization ideas from Ewan Cameron at Telethon Kids Insitute.
+
 Replace line 158 with:
  
 *a copy-paste of current lines 103-131*
