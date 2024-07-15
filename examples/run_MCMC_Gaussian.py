@@ -4,6 +4,8 @@ import numpy as np
 import scipy
 import time
 from random import randrange
+# to run with the given directory format
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import Algo_1
 
 def log_likelihood(x,dim):
