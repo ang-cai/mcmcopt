@@ -5,6 +5,8 @@ import diffusion
 import time
 from random import randrange
 import pygtc
+# For optimized lines
+import scipy
 
 def lprint(msg):
     sys.stdout.write('\r')
@@ -113,8 +115,10 @@ class MH_Diffusion:
                     Q_prime = 1
                     for dim_iter in range(0,self.dim):
                         Q_prime = Q_prime*H[dim_iter][edge_loc[dim_iter]]
-                    if Q_prime == float(0):
-                        Q_prime = 0.000001
+
+                    # Remove lines 116-117
+                    # if Q_prime == float(0): 
+                    #     Q_prime = 0.000001
 
                     edge_loc = []
                     for dim_iter in range(0,self.dim):
@@ -132,9 +136,12 @@ class MH_Diffusion:
                     if Q == float(0):
                         Q = 0.000001
 
-                    Q_ratio = Q/Q_prime
+                    # Replace 135
+                    # Q_ratio = Q/Q_prime 
+                    QMH = scipy.stats.multivariate_normal.pdf(theta_prime-theta, mean=np.zeros(self.dim), cov=self.sigma)
+                    Q_ratio = (self.diffusion_prob*Q+(1-self.diffusion_prob)*QMH)/(self.diffusion_prob*Q_prime+(1-self.diffusion_prob)*QMH)
 
-
+                    # Back to original
                     for j in range(self.dim):
                         while theta_prime[j] < self.low_bound[j] or theta_prime[j] > self.high_bound[j]:
                             theta_prime[j] = theta[j] + stats.norm(0, self.sigma).rvs()
@@ -155,7 +162,45 @@ class MH_Diffusion:
                         while theta_prime[j] < self.low_bound[j] or theta_prime[j] > self.high_bound[j]:
                             theta_prime[j] = theta[j] + stats.norm(0, self.sigma).rvs()
                     theta_prime = np.array(theta_prime)
-                    a = min(1, self.log_likelihood(theta_prime,self.dim)/self.log_likelihood(theta,self.dim))
+
+                    # replace 158 with 103-131
+                    # a = min(1, self.log_likelihood(theta_prime,self.dim)/self.log_likelihood(theta,self.dim)) 
+                    edge_loc = []
+                    for dim_iter in range(0,self.dim):
+                        for edge_iter in range(0,len(edges[dim_iter])):
+                            if theta_prime[dim_iter] >= edges[dim_iter][len(edges[dim_iter])-1]:
+                                edge_loc.append(len(edges[dim_iter])-2)
+                                break
+                            elif theta_prime[dim_iter] < edges[dim_iter][edge_iter]:
+                                edge_loc.append(edge_iter-1)
+                                break
+
+                    Q_prime = 1
+                    for dim_iter in range(0,self.dim):
+                        Q_prime = Q_prime*H[dim_iter][edge_loc[dim_iter]]
+                    if Q_prime == float(0): 
+                        Q_prime = 0.000001
+
+                    edge_loc = []
+                    for dim_iter in range(0,self.dim):
+                        for edge_iter in range(0,len(edges[dim_iter])):
+                            if theta[dim_iter] >= edges[dim_iter][len(edges[dim_iter])-1]:
+                                edge_loc.append(len(edges[dim_iter])-2)
+                                break
+                            elif theta[dim_iter] < edges[dim_iter][edge_iter]:
+                                edge_loc.append(edge_iter-1)
+                                break
+
+                    Q = 1
+                    for dim_iter in range(0,self.dim):
+                        Q = Q*H[dim_iter][edge_loc[dim_iter]]
+                    # add lines
+                    QMH = scipy.stats.multivariate_normal.pdf(theta_prime-theta, mean=np.zeros(self.dim), cov=self.sigma)
+                    Q_ratio = (self.diffusion_prob*Q+(1-self.diffusion_prob)*QMH)/(self.diffusion_prob*Q_prime+(1-self.diffusion_prob)*QMH)
+
+                    a = min(1, self.log_likelihood(theta_prime,self.dim)/self.log_likelihood(theta,self.dim)*Q_ratio)
+
+                    # Back to original
                     u = np.random.uniform()
                     if u < a:
                         naccepted +=1
