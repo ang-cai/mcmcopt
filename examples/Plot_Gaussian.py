@@ -16,7 +16,7 @@ import matplotlib.colors as mcolors
 import pylab as py
 from matplotlib.backends.backend_pdf import PdfPages
 
-outdir = 'Gaussian_10D_og'
+outdir = 'Gaussian_10D_opt'
 dim = 10
 low_bound = -5*np.ones(dim)
 high_bound = 10*np.ones(dim)
